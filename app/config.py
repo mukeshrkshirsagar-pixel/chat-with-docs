@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     max_upload_mb: int = 20
     data_dir: Path = Path("data")
     sample_dir: Path = Path("sample_docs")
+    load_samples_on_start: bool = False  # for hosts with an ephemeral disk: re-index the samples on boot
+
+    # --- Access ---
+    access_password: str | None = None  # when set, every route except /healthz needs HTTP basic auth
 
     @property
     def db_path(self) -> Path:

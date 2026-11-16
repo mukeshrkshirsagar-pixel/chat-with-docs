@@ -1,3 +1,13 @@
+---
+title: Chat With Your Docs
+emoji: 📄
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Chat With Your Docs
 
 Upload PDFs, Word, Markdown or text files and ask questions. Answers are grounded in your documents, streamed, and carry numbered citations you can click to see the exact passage. If the documents don't contain the answer, the app says so instead of guessing.
@@ -20,6 +30,8 @@ For a quick demo, upload the files in `sample_docs/` (or `curl -X POST localhost
 LLM provider is chosen by which key you set (`LLM_PROVIDER=auto`): `XAI_API_KEY` → any OpenAI-compatible endpoint via `XAI_BASE_URL` (xAI Grok by default; I tested with Groq), `ANTHROPIC_API_KEY` → Claude. Set `LLM_PROVIDER=xai` to force one when both are present.
 
 No API key? It still runs in *retrieval-only mode* (shows the best passages instead of a written answer), which is how I developed and tested the retrieval stack.
+
+Hosting: the image listens on `$PORT` (7860) and the README header above makes the repo a ready-made Hugging Face Docker Space. Set `XAI_API_KEY` (or `ANTHROPIC_API_KEY`) as a secret, and `ACCESS_PASSWORD` to put the demo behind a password. The sample documents are re-indexed on every boot (`LOAD_SAMPLES_ON_START`) because a free Space's disk is wiped on restart.
 
 Docker: `docker compose up --build` (the embedding model is baked into the image). <!-- TODO(you): the Dockerfile has NOT been built or run yet — the Docker daemon wasn't running when I wrote it. Verify, then delete this note. -->
 

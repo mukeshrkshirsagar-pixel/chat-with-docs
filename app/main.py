@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
+import secrets
 from collections.abc import Iterator
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .config import Settings, get_settings
 from .embeddings import Embedder, build_embedder
-from .ingestion import ingest
+from .ingestion import ingest, ingest_samples
 from .llm import LLM, build_llm
 from .loaders import IngestError
 from .observability import Timer, new_id, request_id, setup_logging
@@ -36,6 +38,18 @@ class ChatRequest(BaseModel):
     history: list[ChatMessage] = []
 
 
+def _has_password(request: Request, password: str) -> bool:
+    """HTTP basic auth where only the password matters (any user name is accepted)."""
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "basic":
+        return False
+    try:
+        supplied = base64.b64decode(token).decode().partition(":")[2]
+    except ValueError:
+        return False
+    return secrets.compare_digest(supplied.encode(), password.encode())
+
+
 def create_app(
     cfg: Settings | None = None, embedder: Embedder | None = None, llm: LLM | None = None
 ) -> FastAPI:
@@ -48,7 +62,20 @@ def create_app(
     store = Store(str(cfg.db_path), embedder.dim)
     pipeline = RagPipeline(cfg, store, Retriever(store, embedder, cfg.candidates, cfg.top_k), llm)
 
+    if cfg.load_samples_on_start:
+        ingest_samples(store, embedder, cfg)
+
     app = FastAPI(title="Chat With Your Docs")
+
+    if cfg.access_password:
+
+        @app.middleware("http")
+        async def require_password(request: Request, call_next):
+            if request.url.path == "/healthz" or _has_password(request, cfg.access_password):
+                return await call_next(request)
+            return Response(
+                "Authentication required", status_code=401, headers={"WWW-Authenticate": 'Basic realm="docs"'}
+            )
 
     @app.middleware("http")
     async def access_log(request: Request, call_next):
@@ -101,12 +128,10 @@ def create_app(
     @app.post("/api/samples")
     def load_samples() -> list[dict]:
         """One-click demo data: index the bundled sample documents."""
-        out = []
-        for f in sorted(cfg.sample_dir.glob("*")):
-            if f.is_file():
-                r = ingest(store, embedder, cfg, f.name, f.read_bytes())
-                out.append({"name": r.name, "status": r.status, "chunks": r.chunks})
-        return out
+        return [
+            {"name": r.name, "status": r.status, "chunks": r.chunks}
+            for r in ingest_samples(store, embedder, cfg)
+        ]
 
     @app.delete("/api/documents/{doc_id}")
     def delete_document(doc_id: int) -> dict:

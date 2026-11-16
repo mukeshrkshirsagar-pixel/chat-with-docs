@@ -40,3 +40,12 @@ def ingest(store: Store, embedder: Embedder, cfg: Settings, filename: str, data:
     doc_id = store.add_document(filename, sha, drafts, vectors)
     log.info("indexed", extra={"doc": filename, "chunks": len(drafts), "bytes": len(data)})
     return IngestResult(filename, "indexed", doc_id, len(drafts))
+
+
+def ingest_samples(store: Store, embedder: Embedder, cfg: Settings) -> list[IngestResult]:
+    """Index every file in the sample directory. Safe to repeat: known files come back as duplicates."""
+    return [
+        ingest(store, embedder, cfg, f.name, f.read_bytes())
+        for f in sorted(cfg.sample_dir.glob("*"))
+        if f.is_file()
+    ]

@@ -136,3 +136,32 @@ def test_fullwidth_bracket_citations_are_recognised(client, llm):
     upload(client, "remote_work_policy.md")
     done = chat(client, "How many days a week can employees work remotely?")["done"][0]
     assert done["cited"] == [1] and not done["flags"]
+
+
+def test_password_guard_protects_everything_but_healthz(tmp_path, llm):
+    from fastapi.testclient import TestClient
+
+    from app.config import Settings
+    from app.embeddings import HashEmbedder
+    from app.main import create_app
+
+    cfg = Settings(_env_file=None, data_dir=tmp_path, embedder="hash", access_password="s3cret")
+    guarded = TestClient(create_app(cfg, embedder=HashEmbedder(), llm=llm))
+
+    assert guarded.get("/healthz").status_code == 200
+    assert guarded.get("/api/documents").status_code == 401
+    assert guarded.get("/").status_code == 401
+    assert guarded.get("/api/documents", auth=("anyone", "wrong")).status_code == 401
+    assert guarded.get("/api/documents", auth=("anyone", "s3cret")).status_code == 200
+
+
+def test_samples_are_indexed_on_start_when_enabled(tmp_path, llm):
+    from fastapi.testclient import TestClient
+
+    from app.config import Settings
+    from app.embeddings import HashEmbedder
+    from app.main import create_app
+
+    cfg = Settings(_env_file=None, data_dir=tmp_path, embedder="hash", load_samples_on_start=True)
+    c = TestClient(create_app(cfg, embedder=HashEmbedder(), llm=llm))
+    assert {d["name"] for d in c.get("/api/documents").json()} == {p.name for p in SAMPLES.iterdir()}

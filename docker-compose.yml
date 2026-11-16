@@ -1,8 +1,8 @@
 services:
   app:
     build: .
-    ports: ["8000:8000"]
-    env_file:                 # copy .env.example -> .env and add ANTHROPIC_API_KEY
+    ports: ["8000:7860"]
+    env_file:                 # copy .env.example -> .env and add an API key
       - path: .env
         required: false
     volumes:
