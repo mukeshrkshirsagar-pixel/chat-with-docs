@@ -12,9 +12,13 @@ pinned: false
 
 Upload PDFs, Word, Markdown or text files and ask questions. Answers are grounded in your documents, streamed, and carry numbered citations you can click to see the exact passage. If the documents don't contain the answer, the app says so instead of guessing.
 
-> Assignment option 1 (RAG over a document collection). FastAPI + a no-build vanilla JS UI, hybrid retrieval over SQLite, Claude for generation.
+> Assignment option 1 (RAG over a document collection). FastAPI + a no-build vanilla JS UI, hybrid retrieval over SQLite, and a swappable LLM (Anthropic, or any OpenAI-compatible API such as Groq or xAI).
 
-![screenshot placeholder](docs/screenshot-chat.png) <!-- TODO(you): add screenshots + Loom link -->
+![Answer with citations](docs/screenshot-chat.png)
+
+![Follow-up question and a refusal](docs/screenshot-followup-and-refusal.png)
+
+A short walkthrough video accompanies the submission email.
 
 ## Quick start
 
@@ -33,7 +37,9 @@ No API key? It still runs in *retrieval-only mode* (shows the best passages inst
 
 Hosting: the image listens on `$PORT` (7860) and the README header above makes the repo a ready-made Hugging Face Docker Space. Set `XAI_API_KEY` (or `ANTHROPIC_API_KEY`) as a secret, and `ACCESS_PASSWORD` to put the demo behind a password. The sample documents are re-indexed on every boot (`LOAD_SAMPLES_ON_START`) because a free Space's disk is wiped on restart.
 
-Docker: `docker compose up --build` (the embedding model is baked into the image). <!-- TODO(you): the Dockerfile has NOT been built or run yet — the Docker daemon wasn't running when I wrote it. Verify, then delete this note. -->
+Docker: `docker compose up --build` (the embedding model is baked into the image).
+
+> The image has not been built on my machine yet (Docker wasn't running while I wrote it), so treat the Dockerfile as untested until it has been built once.
 
 ```bash
 pytest                              # 26 tests, offline, ~5 s (fake LLM + hash embedder)
@@ -139,25 +145,32 @@ That last row is the honest limit of a similarity gate: it catches off-topic, no
 
 ## Engineering standards
 
-**Followed:** small single-purpose modules; typed config in one place; dependency injection for testability; offline test suite (26 tests: chunking, loaders, API roundtrip, refusal, citation flagging, injection fencing, stats); golden-set eval with a threshold calibration mode; structured logging; pinned-minimum dependencies; non-root container with healthcheck; user-visible error messages that don't leak internals.
+**Followed:** small single-purpose modules; typed config in one place; dependency injection for testability; offline test suite (28 tests: chunking, loaders, API roundtrip, refusal, citation flagging, injection fencing, stats); golden-set eval with a threshold calibration mode; structured logging; pinned-minimum dependencies; non-root container with healthcheck; user-visible error messages that don't leak internals.
 
-**Skipped on purpose (time-box):** auth, multi-user isolation, OCR for scanned PDFs, async ingestion, rate limiting, CI pipeline, linting/type-check config, frontend tests, OpenTelemetry, DB migrations, table/figure extraction from PDFs.
+**Skipped on purpose (time-box):** auth, multi-user isolation, OCR for scanned PDFs, async ingestion, rate limiting, CI pipeline, type checking (ruff lint and format are configured), frontend tests, OpenTelemetry, DB migrations, table/figure extraction from PDFs.
 
 **Known limitations:** a similarity gate can't catch near-miss questions (above); chunk/threshold values tuned on three small docs; the LLM generation path has been exercised with a scripted fake in tests but it has been run live only against Groq's `openai/gpt-oss-120b` through the OpenAI-compatible client (17/17 on the golden set), **not against the Anthropic API** (no key while developing) — run `eval --answers` with an Anthropic key before trusting that path; server-side refusal-fallback (`fallbacks`) isn't wired because the SDK version I pinned doesn't expose it, so refusals are surfaced rather than retried on another model; tokens in `usage` are from the final message only.
 
 ## How I used AI tools
 
-<!-- TODO(you): rewrite this section in your own words — the assignment explicitly wants your thinking, not mine. Facts to build on: -->
-- I used Claude Code to scaffold and write most of the code and tests, working from the assignment text, with me setting the architecture (RAG pipeline shape, SQLite over a vector DB, hybrid retrieval, refuse-before-generate).
-- Things worth saying in your own voice: what you reviewed line by line vs. trusted; the bug the tests caught (the chunker's de-dup check silently dropped repeated text — found by a unit test, not by reading); the threshold calibration that came from running the eval rather than guessing; your dos/don'ts for AI assistants (e.g. keep prompts and thresholds human-reviewed, make the model write tests first, never accept un-run code).
+I built this with Claude Code, in one long working session, and it wrote most of the code and the tests. I picked the assignment option, the stack direction (SQLite, hybrid retrieval, a refuse-before-answering gate), the LLM provider (Groq, via an OpenAI-compatible client), and I reviewed how the app behaves in the browser. I asked for the UI and the repo to be simplified and tidied, for example removing the sample-loader button.
+
+What I did not do is take the output on trust. Anything that could be checked by running it, I ran:
+
+- **Tests first for logic.** A unit test caught a chunker bug where a de-duplication check silently dropped repeated text. Reading the code would not have shown it.
+- **Live runs over assumptions.** The first live run against the model showed it writing citations as 【1】 instead of [1], which my citation checker ignored. I widened the pattern in the backend and the UI and tightened the prompt.
+- **Numbers from the eval, not from guessing.** The relevance threshold (0.50) comes from running `python -m eval.run_eval --sweep` on a 20-question golden set. The eval itself had two mistakes of its own (typographic characters breaking keyword matches, and one badly written question), and I fixed those before trusting the scores.
+- **A check that lied.** A Docker "build succeeded" message turned out to be a false positive, because the daemon wasn't running and the output was piped through `tail`. That is why the README says the Dockerfile is untested.
+
+Rules I'd keep for any AI-assisted project: nothing counts as done until it has been run; prompts, thresholds and eval questions stay under human review; and the README only claims what was actually tested. The known gaps (the Anthropic path not run live, the vacation near-miss) are listed above for that reason.
 
 ## What I'd do differently with more time
 
-<!-- TODO(you): edit/prioritise to reflect your own view. Candidate list, in the order I'd tackle it: -->
-1. Run the model sweep (Opus vs Sonnet vs Haiku) on `eval --answers` and pick by cost at equal accuracy; add an LLM-as-judge faithfulness metric.
-2. Cross-encoder reranker (fastembed ships one) to fix near-miss questions and improve hit@1; use its score for the gate.
-3. A bigger, messier eval set from real documents (tables, scanned PDFs, long contracts) — the current one is too clean.
-4. Async ingestion with progress, OCR, table-aware PDF parsing.
-5. Per-document scoping in the UI ("ask only this file"), citation highlighting inside the passage, thumbs up/down → eval set.
-6. Contextual retrieval (LLM-generated chunk context at ingest) and parent-document expansion.
-7. OpenTelemetry traces and a cost dashboard.
+1. **Fix near-miss questions.** The similarity gate lets through a question like "vacation allowance" because a related passage scores just above the threshold. I'd add a cross-encoder reranker (fastembed ships one) and use its score for the gate, which should also improve hit@1.
+2. **Test the Anthropic path live and compare models.** Run `eval --answers` with an Anthropic key, then compare model sizes on cost at equal accuracy. Add an LLM-as-judge faithfulness metric.
+3. **A bigger, messier eval set.** Real documents with tables, scanned PDFs and long contracts. The current set is too clean to trust beyond this demo.
+4. **Build and verify the container, and add CI.** Build the Docker image, run tests, lint and the eval on every change, and block regressions.
+5. **Async ingestion.** Upload to object storage, process in a queue with progress, add OCR and table-aware PDF parsing.
+6. **Better UX for trust.** Ask only one file, highlight the cited sentence inside the passage, and turn thumbs up and down into new eval cases.
+7. **Contextual retrieval.** Generate chunk context at ingest and expand to the parent section when a chunk is cited.
+8. **Observability.** OpenTelemetry traces and a cost-per-query dashboard.

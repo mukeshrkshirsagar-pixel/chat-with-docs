@@ -7,3 +7,4 @@ data/
 .fastembed_cache/
 .claude/
 .ruff_cache/
+demo/
