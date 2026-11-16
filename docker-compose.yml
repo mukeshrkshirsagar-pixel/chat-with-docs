@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports: ["8000:8000"]
+    env_file:                 # copy .env.example -> .env and add ANTHROPIC_API_KEY
+      - path: .env
+        required: false
+    volumes:
+      - docs-data:/data       # SQLite index survives restarts
+volumes:
+  docs-data:

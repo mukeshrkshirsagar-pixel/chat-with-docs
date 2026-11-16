@@ -1,0 +1,21 @@
+{"q": "How many days a week can I work remotely?", "doc": "remote_work_policy.md", "evidence": "up to three days per week", "keywords": ["three"]}
+{"q": "Can I work from Spain for a month?", "doc": "remote_work_policy.md", "evidence": "maximum of 20 working days", "keywords": ["20"]}
+{"q": "What is the stipend for setting up my home office?", "doc": "remote_work_policy.md", "evidence": "600 EUR", "keywords": ["600"]}
+{"q": "Do I get internet reimbursed?", "doc": "remote_work_policy.md", "evidence": "40 EUR per month", "keywords": ["40"]}
+{"q": "When must I be reachable?", "doc": "remote_work_policy.md", "evidence": "between 10:00 and 15:00", "keywords": ["10:00", "15:00"]}
+{"q": "Who is not eligible for hybrid work?", "doc": "remote_work_policy.md", "evidence": "probation", "keywords": ["probation"]}
+{"q": "How long must a password be?", "doc": "security_handbook.md", "evidence": "at least 14 characters", "keywords": ["14"]}
+{"q": "I clicked a phishing link, what do I do?", "doc": "security_handbook.md", "evidence": "within one hour", "keywords": ["hour"]}
+{"q": "What phone extension is the security hotline?", "doc": "security_handbook.md", "evidence": "extension 5100", "keywords": ["5100"]}
+{"q": "How is customer payment data classified and protected?", "doc": "security_handbook.md", "evidence": "AES-256", "keywords": ["Restricted", "AES-256"]}
+{"q": "When do contractor accounts expire?", "doc": "security_handbook.md", "evidence": "90 days", "keywords": ["90"]}
+{"q": "How long does the Orbit robot run on one battery charge?", "doc": "orbit_product_faq.txt", "evidence": "10 hours", "keywords": ["10"]}
+{"q": "What is the maximum payload?", "doc": "orbit_product_faq.txt", "evidence": "35 kg", "keywords": ["35"]}
+{"q": "What does the robot do if Wi-Fi drops?", "doc": "orbit_product_faq.txt", "evidence": "parks safely", "keywords": ["park"]}
+{"q": "How much does Orbit cost?", "doc": "orbit_product_faq.txt", "evidence": "1,200 EUR", "keywords": ["1,200"]}
+{"q": "What is the warranty period?", "doc": "orbit_product_faq.txt", "evidence": "24-month", "keywords": ["24"]}
+{"q": "Which standard is Orbit certified to?", "doc": "orbit_product_faq.txt", "evidence": "ISO 3691-4", "keywords": ["3691"]}
+{"q": "Who won the football world cup in 2018?", "doc": null, "evidence": null, "keywords": []}
+{"q": "What is the capital of Australia?", "doc": null, "evidence": null, "keywords": []}
+{"q": "Write me a poem about the sea", "doc": null, "evidence": null, "keywords": []}
+{"q": "What is the vacation allowance in days?", "doc": null, "evidence": null, "keywords": []}

@@ -1,0 +1,21 @@
+Orbit Warehouse Robot - Customer FAQ
+
+Orbit is Northwind's autonomous mobile robot for moving totes inside warehouses.
+
+Battery and charging
+Orbit's battery lasts about 10 hours of continuous operation on a single charge. A full charge from empty takes 2.5 hours at a standard charging dock. Orbit returns to a dock on its own when the battery falls below 15 percent. The battery is rated for 2,000 charge cycles, after which capacity drops to roughly 80 percent and replacement is recommended.
+
+Payload and speed
+Each Orbit can carry up to 35 kg. The maximum travel speed is 1.8 metres per second in open aisles. In zones shared with people, Orbit automatically slows to 0.8 metres per second.
+
+Safety
+Orbit is equipped with a 360-degree lidar and bumper sensors. It stops within 0.3 seconds when an obstacle is detected inside its safety zone. The emergency stop button on top of the unit cuts motor power immediately. Orbit is certified to ISO 3691-4.
+
+Connectivity
+Orbit connects over Wi-Fi 6 on the 5 GHz band. If the connection is lost, the robot finishes its current task, parks safely and waits. It does not move again until the connection is restored or an operator releases it manually. Fleet software updates are delivered over the air and are applied only when the robot is docked.
+
+Warranty and support
+Orbit comes with a 24-month hardware warranty. The warranty does not cover damage from liquids or from operation outside the temperature range of 0 to 40 degrees Celsius. Support is available on weekdays from 08:00 to 18:00 CET at support@northwind.example. Customers on the Premium plan get 24/7 phone support with a 4-hour response time.
+
+Pricing
+Orbit is not sold outright. It is offered as a subscription starting at 1,200 EUR per robot per month, including software updates and warranty service. A minimum fleet of five robots is required.
