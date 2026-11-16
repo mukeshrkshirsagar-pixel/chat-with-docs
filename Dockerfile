@@ -2,7 +2,9 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
     FASTEMBED_CACHE_PATH=/opt/fastembed_cache \
-    DATA_DIR=/data \n    PORT=7860 \n    LOAD_SAMPLES_ON_START=true
+    DATA_DIR=/data \
+    PORT=7860 \
+    LOAD_SAMPLES_ON_START=true
 
 WORKDIR /app
 
