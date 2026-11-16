@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: chat-with-docs
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: LLM_PROVIDER
+        value: xai
+      - key: XAI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: XAI_GENERATION_MODEL
+        value: openai/gpt-oss-120b
+      - key: XAI_REWRITE_MODEL
+        value: openai/gpt-oss-20b
+      - key: XAI_API_KEY
+        sync: false
+      - key: ACCESS_PASSWORD
+        sync: false
